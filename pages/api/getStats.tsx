@@ -1,17 +1,9 @@
-import axios from 'axios';
-import btoa from 'btoa';
+import puppeteer from 'puppeteer';
 
-export default (req, res) => {
-  axios.get(`https://wakatime.com/api/v1/users/${req.query.username}`, {
-    headers: {
-      Authorization: 'Basic ' + btoa(process.env.WAKATIME_API_KEY)
-    }
-  })
-  .then(function (response) {
-    res.send(JSON.stringify(response.data.data));
-  })
-  .catch(function (error) {
-    console.log(error);
-    res.status(400).send('Sorry, we can\'t find that user or we\'re not authorized to.');
-  });
+export default async (req, res) => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto(`https://wakatime.com/${req.query.username}`);
+  res.send(await page.evaluate(element => element.textContent, await page.$(".value")));
+  await browser.close();
 }
